@@ -3,18 +3,13 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
-from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
-
 from launch_ros.actions import Node
 
 
 def generate_launch_description():
 
-    pkg_ros_ign_gazebo_demos = get_package_share_directory('ros_ign_gazebo_demos')
     pkg_ros_ign_gazebo = get_package_share_directory('ros_ign_gazebo')
     pkg_tugbot = get_package_share_directory('tugbot')
 
@@ -31,12 +26,20 @@ def generate_launch_description():
         }.items(),
     )
 
-    # RViz
-    rviz = Node(
-       package='rviz2',
-       executable='rviz2',
-       arguments=['-d', os.path.join(pkg_ros_ign_gazebo_demos, 'rviz', 'gpu_lidar_bridge.rviz')],
-       condition=IfCondition(LaunchConfiguration('rviz'))
+    # urdf
+
+    urdf_dir = os.path.join(pkg_tugbot, 'urdf')
+    urdf_file = os.path.join(urdf_dir, 'tugbot.urdf')
+    with open(urdf_file, 'r') as infp:
+        robot_desc = infp.read()
+    robot_description = {"robot_description": robot_desc}
+
+    robot_state_publisher = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        output='both',
+        parameters=[robot_description],
     )
 
     # Bridge
@@ -46,14 +49,15 @@ def generate_launch_description():
         arguments=[
             '/world/world_demo/model/tugbot/link/scan_omni/sensor/scan_omni/scan/points@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked'
         ],
+        remappings=[
+            ('/world/world_demo/model/tugbot/link/scan_omni/sensor/scan_omni/scan/points', 'points'),
+        ],
         output='screen'
     )
 
     return LaunchDescription([
         ign_resource_path,
         ign_gazebo,
-        DeclareLaunchArgument('rviz', default_value='true',
-                              description='Open RViz.'),
         bridge,
-        rviz,
+        robot_state_publisher
     ])

@@ -1,0 +1,9 @@
+<robot name="tugbot">
+  <link name="base_link"/>
+
+  <joint name="body_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="tugbot/scan_omni/scan_omni"/>
+  </joint>
+  <link name="tugbot/scan_omni/scan_omni"></link>
+</robot>
