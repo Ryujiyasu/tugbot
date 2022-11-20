@@ -43,8 +43,9 @@ def generate_launch_description():
     bridge = Node(
         package='ros_ign_bridge',
         executable='parameter_bridge',
-        arguments=['lidar@sensor_msgs/msg/LaserScan@ignition.msgs.LaserScan',
-                   '/lidar/points@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked'],
+        arguments=[
+            '/world/world_demo/model/tugbot/link/scan_omni/sensor/scan_omni/scan/points@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked'
+        ],
         output='screen'
     )
 
